@@ -1,0 +1,9 @@
+fastapi[standard]
+uvicorn
+PyMuPDF
+spacy
+sentence-transformers
+xgboost
+scikit-learn
+psycopg2-binary
+sqlalchemy

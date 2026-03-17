@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Results | AI Resume Screener</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <a href="/dashboard"
+                style="color: var(--text-dim); text-decoration: none; font-size: 0.9rem; margin-bottom: 2rem; display: block;">
+                <i class="fa-solid fa-arrow-left"></i> Back to Workbench
+            </a>
+            <h1>The Audit <span style="font-style: italic;">Report</span></h1>
+            <p style="color: var(--text-dim);">Candidate Analysis Case ID: #[[${score.hashCode()}]]</p>
+        </div>
+
+        <!-- 🧪 THE BIAS ENGINE UI -->
+        <div class="bias-alert" th:if="${score.bias_gap > 5}">
+            <i class="fa-solid fa-shield-virus" style="font-size: 2rem; color: var(--accent);"></i>
+            <div>
+                <h3 style="color: var(--accent); margin-bottom: 0.25rem;">Bias Warning Detected</h3>
+                <p>Personal Identifiable Information (PII) is skewing results by <strong
+                        th:text="${score.bias_gap} + '%'"></strong>.
+                    Consider anonymizing the resume further for a fairer result.</p>
+            </div>
+        </div>
+
+        <!-- 📊 TOP LEVEL SCORES -->
+        <div class="score-grid">
+            <div class="score-card">
+                <span class="score-label">Job Match Confidence</span>
+                <div class="score-val"
+                    th:text="${#numbers.formatDecimal(score.similarity_score_percentage, 1, 1)} + '%'">0%</div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Semantic similarity check</p>
+            </div>
+            <div class="score-card" style="border-left-color: var(--success);">
+                <span class="score-label">Neutral Screening Score</span>
+                <div class="score-val" th:text="${#numbers.formatDecimal(score.unbiased_score_percentage, 1, 1)} + '%'">
+                    0%</div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Identity-blind analysis</p>
+            </div>
+            <div class="score-card" style="border-left-color: #fff;">
+                <span class="score-label">Hiring Probability</span>
+                <div class="score-val" th:text="${#numbers.formatDecimal(score.placement_probability, 1, 1)} + '%'">0%
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">XGBoost Intelligence prediction</p>
+            </div>
+        </div>
+
+        <main style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem;">
+            <!-- LEFT: DETAILED ANALYSIS -->
+            <div>
+                <div class="glass-card" style="padding: 2rem;">
+                    <h3 style="margin-bottom: 1.5rem;">Extracted Dossier</h3>
+
+                    <!-- Education -->
+                    <div style="margin-bottom: 2.5rem;">
+                        <h4
+                            style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); margin-bottom: 1rem;">
+                            <i class="fa-solid fa-graduation-cap-simple"></i> Academic Qualifications
+                        </h4>
+                        <div th:if="${not #lists.isEmpty(score.education)}">
+                            <span th:each="edu : ${score.education}" class="skill-pill" th:text="${edu}"></span>
+                        </div>
+                        <p th:if="${#lists.isEmpty(score.education)}"
+                            style="color: var(--text-dim); font-style: italic;">No specific degrees found.</p>
+                    </div>
+
+                    <!-- Skills -->
+                    <div style="margin-bottom: 2.5rem;">
+                        <h4
+                            style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); margin-bottom: 1rem;">
+                            <i class="fa-solid fa-microchip"></i> Matched Competencies
+                        </h4>
+                        <div th:if="${not #lists.isEmpty(score.matched_skills)}">
+                            <span th:each="skill : ${score.matched_skills}" class="skill-pill"
+                                th:text="${skill}"></span>
+                        </div>
+                    </div>
+
+                    <!-- Skill Gap -->
+                    <div>
+                        <h4
+                            style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--danger); margin-bottom: 1rem;">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Skills Deficit
+                        </h4>
+                        <div th:if="${not #lists.isEmpty(score.missing_skills)}">
+                            <span th:each="skill : ${score.missing_skills}" class="skill-pill"
+                                style="border-color: rgba(226, 109, 92, 0.3); background: rgba(226, 109, 92, 0.05); color: var(--danger);"
+                                th:text="${skill}"></span>
+                        </div>
+                        <p th:if="${#lists.isEmpty(score.missing_skills)}"
+                            style="color: var(--success); font-size: 0.9rem;">
+                            ✓ Full coverage detected based on search parameters.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: VISUALIZATIONS -->
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                <div class="glass-card" style="padding: 2rem;">
+                    <h3 style="margin-bottom: 1.5rem;">Fairness Audit</h3>
+                    <canvas id="biasChart" style="max-height: 250px;"></canvas>
+                </div>
+
+                <div class="glass-card" style="padding: 2rem; background: #000;">
+                    <h4 style="color: var(--text-dim); margin-bottom: 1rem;">Anonymization Data</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-dim);">Redacted items to ensure unbiased scoring:
+                    </p>
+                    <div th:each="entry : ${score.redacted_items}" style="margin-top: 1rem;">
+                        <p style="font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--accent);"
+                            th:text="${entry.key}"></p>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); overflow-wrap: break-word;"
+                            th:text="${#strings.listJoin(entry.value, ', ')}"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script th:inline="javascript">
+        /* Chart Configuration with Human-Centric Palette */
+        const ctx = document.getElementById('biasChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Standard Match', 'Neutral Screening'],
+                datasets: [{
+                    label: 'Match Score %',
+                    data: [
+                        [[${ score.similarity_score_percentage }]],
+                        [[${ score.unbiased_score_percentage }]]
+                    ],
+                    backgroundColor: ['#f27b50', '#a3b18a'],
+                    borderColor: 'rgba(255,255,255,0.1)',
+                    borderWidth: 0,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#949185' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#949185' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

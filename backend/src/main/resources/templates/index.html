@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Screener | The Auditor</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Human-Centric Asymmetric Hero -->
+        <header class="hero-section">
+            <h1>The Resume <span style="font-style: italic;">Auditor</span>.</h1>
+            <p>An intelligence layer for hiring. Analyze skills, predict potential, and strip away bias with surgical
+                precision.</p>
+        </header>
+
+        <main>
+            <div class="glass-card">
+                <form id="scanForm" action="/dashboard/analyze" method="POST" enctype="multipart/form-data">
+
+                    <div class="form-group">
+                        <label for="job_description">Job Specification</label>
+                        <textarea id="job_description" name="job_description" rows="6"
+                            placeholder="Describe the ideal candidate. What technical skills and experiences are non-negotiable?"
+                            required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Candidate Dossier (PDF)</label>
+                        <div class="file-upload-wrapper" id="dropZone">
+                            <i class="fa-solid fa-cloud-arrow-up"
+                                style="font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem;"></i>
+                            <p id="fileNameDisplay" style="font-weight: 600;">Drop resume here or <span
+                                    style="color:var(--accent); text-decoration: underline;">browse files</span></p>
+                            <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem;">Maximum file size:
+                                5MB</p>
+                            <input type="file" id="resumeFile" name="file" accept=".pdf" style="display:none" required>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 3rem;">
+                        <button type="submit" class="btn-primary">
+                            Begin AI Audit <i class="fa-solid fa-arrow-right-long"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Handcrafted Footer Info -->
+            <footer
+                style="margin-top: 5rem; color: var(--text-dim); font-size: 0.85rem; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <p>Powered by XGBoost & Sentence-Transformers</p>
+                    <p>Designed for Fair Hiring 🌿</p>
+                </div>
+                <div style="text-align: right;">
+                    <p>&copy; 2026 AI Architecture Lab</p>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('resumeFile');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+
+        dropZone.onclick = () => fileInput.click();
+
+        dropZone.ondragover = (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--accent)';
+            dropZone.style.background = 'rgba(242, 123, 80, 0.05)';
+        };
+
+        dropZone.ondragleave = () => {
+            dropZone.style.borderColor = 'var(--border)';
+            dropZone.style.background = 'transparent';
+        };
+
+        dropZone.ondrop = (e) => {
+            e.preventDefault();
+            fileInput.files = e.dataTransfer.files;
+            updateFileName();
+        };
+
+        fileInput.onchange = () => updateFileName();
+
+        function updateFileName() {
+            if (fileInput.files.length > 0) {
+                fileNameDisplay.innerHTML = `<i class="fa-solid fa-file-pdf"></i> ${fileInput.files[0].name}`;
+                dropZone.style.borderColor = 'var(--accent)';
+                dropZone.style.background = 'rgba(242, 123, 80, 0.05)';
+            }
+        }
+    </script>
+</body>
+
+</html>
