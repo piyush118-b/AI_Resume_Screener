@@ -1,7 +1,12 @@
+# Force CPU-only versions for small footprint
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
+
 fastapi[standard]
 uvicorn
 PyMuPDF
 spacy
+torch
 sentence-transformers
 xgboost
 scikit-learn

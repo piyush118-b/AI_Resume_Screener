@@ -7,8 +7,9 @@ WORKDIR /app
 # Copy the requirements file into the image
 COPY requirements.txt .
 
-# Install dependencies (plus libomp for XGBoost)
+# Install system and python dependencies (CPU-only versions for smallest footprint)
 RUN apt-get update && apt-get install -y libomp-dev && \
+    pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt && \
     python -m spacy download en_core_web_sm
 
