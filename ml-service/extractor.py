@@ -10,30 +10,23 @@ except OSError:
     nlp = None
 
 # 🌟 1. The Skill Dictionary
-# We've expanded this to include 100+ common tech skills!
 KNOWN_SKILLS = [
-    # Languages
     "python", "java", "javascript", "typescript", "c++", "c#", "php", "ruby", "go", "rust", "kotlin", "swift",
-    
-    # Backend & Frameworks
-    "spring boot", "spring", "django", "flask", "fastapi", "express", "node.js", "laravel", "rails", "asp.net",
-    
-    # Frontend
+    "spring boot", "spring", "django", "flask", "fastapi", "express", "node", "laravel", "rails", "asp.net",
     "react", "angular", "vue", "html", "css", "tailwind", "bootstrap", "jquery", "next.js", "redux",
-    
-    # Databases
     "sql", "postgresql", "mysql", "mongodb", "redis", "oracle", "sqlite", "cassandra", "firebase",
-    
-    # Cloud & DevOps
     "aws", "azure", "google cloud", "gcp", "docker", "kubernetes", "jenkins", "terraform", "ansible", "git", "github", "gitlab",
-    
-    # AI & Data Science
     "machine learning", "deep learning", "artificial intelligence", "nlp", "data science", "tensorflow", "pytorch", 
     "scikit-learn", "pandas", "numpy", "tableau", "power bi", "r", "opencv",
-    
-    # Tools & Others
     "jira", "confluence", "postman", "swagger", "graphql", "rest api", "microservices", "agile", "scrum", "linux"
 ]
+
+# Add a pattern matcher to the spacy brain!
+if nlp:
+    ruler = nlp.add_pipe("entity_ruler", before="ner")
+    patterns = [{"label": "SKILL", "pattern": skill} for skill in KNOWN_SKILLS]
+    ruler.add_patterns(patterns)
+
 
 def format_skill_name(skill: str) -> str:
     """Makes sure skills like AWS, SQL, and PHP stay capitalized correctly."""
@@ -43,22 +36,18 @@ def format_skill_name(skill: str) -> str:
     return skill.title() # Capitalizes first letter (e.g., python -> Python)
 
 def extract_skills(text: str) -> list[str]:
-    """Finds known skills hidden inside the messy resume text."""
-    # Convert all text to lowercase. 
-    # This prevents the computer from seeing "Python" and "python" as two different things.
-    text_lower = text.lower()
+    """Uses the new Entity Brain to find skills much faster and smarter."""
+    if not nlp:
+        return []
+        
+    doc = nlp(text)
+    found_skills = set()
     
-    # We use a 'Set' instead of a list. Sets don't allow duplicates. 
-    # Even if someone writes "Java" 5 times on their resume, we only record it once!
-    found_skills = set() 
-    
-    # We loop through our dictionary and see if the word is anywhere in the resume text
-    for skill in KNOWN_SKILLS:
-        # Regex \b means "word boundary". So "java" matches "java" but not "javascript".
-        if re.search(r'\b' + re.escape(skill) + r'\b', text_lower):
-            found_skills.add(format_skill_name(skill)) 
+    # 🌟 We look for things the AI labeled as "SKILL"
+    for ent in doc.ents:
+        if ent.label_ == "SKILL":
+            found_skills.add(format_skill_name(ent.text))
             
-    # Convert it back to a standard Python List before returning
     return list(found_skills)
 
 def extract_education(text: str) -> list[str]:

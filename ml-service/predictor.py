@@ -9,29 +9,37 @@ MODEL_PATH = "xgboost_model.pkl"
 
 def generate_training_data():
     """
-    Creates a realistic fake dataset.
-    In a real product, this would be your REAL historical hiring data!
-    Each row = one candidate. Columns = features. Label = did they get hired? (1=Yes, 0=No)
+    Creates a more sophisticated fake dataset using non-linear logic.
+    Reflects the interaction between experience and job fit.
     """
     np.random.seed(42)
-    n = 800   # 800 fake candidates
+    n = 5000   # Triple the dataset size for better learning
 
-    similarity_scores  = np.random.uniform(20, 99, n)
-    years_experience   = np.random.randint(0, 15, n)
-    # Education: 0=None, 1=Diploma, 2=Bachelor, 3=Master, 4=PhD
+    similarity_scores  = np.random.uniform(10, 100, n)
+    years_experience   = np.random.randint(0, 20, n)
     education_levels   = np.random.randint(0, 5, n)
-    skill_counts       = np.random.randint(1, 12, n)
-
-    # 🌟 The Label: candidates with high similarity + experience tend to get hired!
-    # We add some random noise to make it feel realistic (hiring is never 100% logic!)
+    skill_counts       = np.random.randint(1, 15, n)
+    
+    # 🌟 NEW: Complexity Logic
+    # 1. Experience * Match interaction (Experience is only valuable if it matches the job)
+    exp_match_interaction = (years_experience / 20.0) * (similarity_scores / 100.0)
+    
+    # 2. Minimum Threshold: If similarity is < 25%, likelihood of being hired drops drastically
+    base_match = np.where(similarity_scores < 25, -20, similarity_scores * 0.3)
+    
+    # 3. Diminishing returns on skill counts (having 50 skills isn't 5x better than 10)
+    skill_strength = np.log1p(skill_counts) * 10
+    
+    # Final 'Secret' Score Formula
     scores = (
-        similarity_scores * 0.45 +
-        years_experience  * 2.0  +
-        education_levels  * 4.0  +
-        skill_counts      * 1.5  +
-        np.random.normal(0, 8, n)
+        base_match + 
+        (exp_match_interaction * 40) + 
+        (education_levels * 5) + 
+        skill_strength +
+        np.random.normal(0, 10, n) # Noise
     )
-    hired = (scores > 70).astype(int)  # threshold deciding hired/not hired
+    
+    hired = (scores > 55).astype(int)
 
     return pd.DataFrame({
         "similarity_score": similarity_scores,
