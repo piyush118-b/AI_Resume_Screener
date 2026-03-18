@@ -112,17 +112,7 @@
                     <canvas id="biasChart" style="max-height: 250px;"></canvas>
                 </div>
 
-                <div class="glass-card" style="padding: 2rem; background: #000;">
-                    <h4 style="color: var(--text-dim); margin-bottom: 1rem;">Anonymization Data</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-dim);">Redacted items to ensure unbiased scoring:
-                    </p>
-                    <div th:each="entry : ${score.redacted_items}" style="margin-top: 1rem;">
-                        <p style="font-weight: 600; font-size: 0.75rem; text-transform: uppercase; color: var(--accent);"
-                            th:text="${entry.key}"></p>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); overflow-wrap: break-word;"
-                            th:text="${#strings.listJoin(entry.value, ', ')}"></p>
-                    </div>
-                </div>
+
             </div>
         </main>
     </div>
