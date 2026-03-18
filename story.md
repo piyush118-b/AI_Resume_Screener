@@ -18,5 +18,20 @@ Once deployed, we noticed the "Neutral Match" scores were almost identical to th
 
 This synchronization ensured that anything recognized as a "Skill" was strictly protected from redaction. Only after this change did we see our first real "Bias Gap." In one test case, a candidate's score dropped from 31% to 22% once their identity markers were removed, proving that the identity-blind audit was finally working.
 
+## The Identity Crisis and the Entity Ruler
+The project faced a silent but critical failure in its middle phase. Because our anonymizer and skill extractor were using separate natural language processing instances, they were essentially two strangers fighting over the same text. The anonymizer would redact a word like "Java" thinking it was a person's name, while the extractor would then fail to find that skill because it had been hidden. 
+
+We solved this by creating a unified intelligence pipeline. We implemented a dedicated entity ruler that gave our natural language processor a "technical vocabulary." By teaching the model to recognize hundreds of specific technologies as entities, we ensured that the anonymizer would always prioritize a skill over a personal identifier.
+
+## From Software to Craft
+As the technical foundation stabilized, we realized the project looked like every other software-as-a-service template on the internet. It was sterile, overly symmetrical, and felt manufactured by a computer. We decided to strip the visual layer and rebuild it as a "human-centric workstation." 
+
+We moved away from default fonts and generic gradients toward a warm, characterful palette of charcoal, cream, and terracotta. We introduced subtle textures and intentional asymmetry to make the dashboard feel like a physical audit report. This wasn't just about appearance; it was about making the serious work of fair hiring feel grounded and approachable.
+
+## The Final Refinement
+Our last major hurdle was the predictive model's overconfidence. The initial version of our XGBoost model was returning 99.9% hire-ability scores for almost every candidate because it had learned to over-value the sheer number of skills. A candidate applying for a role they were completely unqualified for could still "game" the system by having a large vocabulary.
+
+We had to fundamentally rethink our scoring logic. We implemented a balanced heuristic that weighted an individual's general profile strength against their specific job match similarity. This meant a "perfect" resume would still receive a low score if it was submitted for a job it didn't match. This final change moved our project from a simple calculator to a nuanced decision support system.
+
 ## The Result
-What started as a simple keyword matcher ended as a multi-stage microservice architecture. We overcame memory leaks, library bloat, and logic conflicts between our NLP modules. The Auditor is now a tool that doesn't just scan resumes—it provides a transparent, accountable audit of the hiring process itself.
+What started as a simple keyword matcher ended as a multi-stage microservice architecture. We overcame memory leaks, library bloat, and logic conflicts between our natural language modules. The Auditor is now a tool that doesn't just scan resumes—it provides a transparent, accountable audit of the hiring process itself. This journey from a basic script to a hardened cloud application with a handcrafted soul was as much a learning experience in product design as it was in machine learning.
