@@ -1,73 +1,78 @@
-# 🤖 AI Resume Screener: The Auditor
+# AI Resume Screener: The Auditor
 
-[![AWS Deployment](https://img.shields.io/badge/Deployment-AWS_EC2-orange?logo=amazon-aws)](https://aws.amazon.com/)
-[![Dockerized](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+The Auditor is an intelligence layer designed for modern hiring. Instead of simple keyword matching, it provides a full-stack decision support system that uses Natural Language Processing and Machine Learning to audit candidates with a focus on fairness and predictive accuracy.
 
-An intelligence layer for modern hiring. This project isn't just a keyword matcher; it's a full-stack **Decision Support System** that uses NLP and Machine Learning to audit candidates with a focus on **Fairness** and **Predictive Accuracy**.
+## Core Capabilities
 
----
+### Bias Detection and Fairness Engine
+Standard recruitment often suffers from subconscious bias based on names or locations. The Auditor addresses this directly:
+*   **PII Anonymization**: The system automatically redacts names, organizations, locations, and gendered pronouns using spaCy's Named Entity Recognition (NER).
+*   **Neutral Screening**: It calculates a secondary match score based strictly on anonymized text.
+*   **Bias Gap Analysis**: The system flags results where a candidate's identity appears to influence their match score by more than a 5% margin.
 
-## 🌿 Core Features
+### Hiring Prediction using XGBoost
+The system includes a predictive model trained on thousands of data points to estimate the probability of a candidate successfully passing an initial HR screening.
+*   **Features**: The model analyzes skill count, education level, years of experience, and job similarity.
+*   **Methodology**: It utilizes Gradient Boosting (XGBoost) to provide high-precision classification.
 
-### 1. ⚖️ Bias Detection & Fairness Engine
-Most recruiters subconsciously prefer certain names or universities. **The Auditor** proactively fights this:
-*   **PII Scrubbing**: Automatically redacts names, organizations, locations, and gendered pronouns using spaCy's NER (Named Entity Recognition).
-*   **Neutral Screening**: Calculates a second score based *only* on the anonymized text.
-*   **Bias Gap Analysis**: Flags if a candidate's identity influenced their score by more than 5%.
-
-### 🎯 2. Hiring Prediction (XGBoost)
-Uses a model trained on **4,500 real-world resumes** (trained in Google Colab) to predict the probability of a candidate successfully passing an HR screening.
-*   **Inputs**: Skill count, education level, years of experience, and job similarity.
-*   **Algorithm**: Gradient Boosting (XGBoost) for high-precision classification.
-
-### 🔍 3. Skill Gap Analysis
-Goes beyond what you have. It identifies what you **lack**:
-*   Compares resume embeddings against the Job Description.
-*   Lists "Missing Skills" in a dedicated dashboard section to help candidates or HR identify developmental areas.
+### Skill Gap Identification
+The Auditor identifies not just what a candidate possesses, but what they lack. By comparing resume embeddings against a specific Job Description, it generates a "Missing Skills" dossier to help HR identify specific developmental areas or missing requirements.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
-*   **Frontend**: Handcrafted, "Impeccable Style" dashboard using **Thymeleaf**, **Tailwind CSS**, and **Chart.js**.
-*   **Backend (The Orchestrator)**: Robust **Java Spring Boot 3.x** microservice managing PDF processing and database persistence.
-*   **ML Brain (The Auditor)**: Python **FastAPI** service handling:
-    *   `sentence-transformers` (all-MiniLM-L6-v2) for vector embeddings.
-    *   `spaCy` for high-speed NLP and NER.
-    *   `XGBoost` for predictive modeling.
-*   **Database**: **PostgreSQL 15** for reliable storage of every audit result.
+*   **Logic Layer**: A Java Spring Boot 3.x microservice that orchestrates PDF processing, business logic, and database persistence.
+*   **Intelligence Layer**: A Python FastAPI service handling vector embeddings (sentence-transformers), NLP/NER (spaCy), and predictive modeling (XGBoost).
+*   **Interface**: A handcrafted dashboard built with Thymeleaf, Tailwind CSS, and Chart.js for data visualization.
+*   **Data Persistence**: PostgreSQL 15 for reliable storage of audit results and candidate profiles.
 
 ---
 
-## 🚀 Quick Start (Docker Compose)
+## Local Development
 
-The easiest way to run the entire stack locally is using Docker.
+To run the full stack locally using Docker:
 
-1.  **Clone the Repo**:
+1.  Clone the repository:
     ```bash
     git clone https://github.com/piyush118-b/AI_Resume_Screener.git
     cd AI_Resume_Screener
     ```
 
-2.  **Launch the System**:
+2.  Launch the services:
     ```bash
     docker-compose up --build
     ```
 
-3.  **Access the Dashboard**:
-    Open [http://localhost:8080/dashboard](http://localhost:8080/dashboard) in your browser.
+3.  Access the dashboard:
+    Navigate to `http://localhost:8080/dashboard` in your browser.
 
 ---
 
-## ☁️ Deployment (AWS)
-This project is architected for the cloud. See the **[aws_deployment_guide.md](./aws_deployment_guide.md)** for detailed instructions on launching an EC2 instance with multi-container orchestration.
+## Server Deployment (AWS EC2)
+
+The project is optimized for deployment on cloud environments like AWS. 
+
+### Recommended Configuration
+*   **Instance**: t3.small or t3.medium (minimum 2GB RAM required for ML models).
+*   **OS**: Ubuntu 22.04 LTS or Amazon Linux 2023.
+*   **Storage**: At least 12GB EBS volume.
+
+### Deployment Steps
+1.  Install Docker and Docker Compose on your instance.
+2.  Clone the repository and enter the directory.
+3.  Because cloud instances often lack GPUs, the project is configured to use CPU-only versions of Torch and Transformers to minimize memory footprint.
+4.  Run the sequential build process to avoid disk space peak issues:
+    ```bash
+    docker build -t ai_resume_screener-backend ./backend
+    docker build -t ai_resume_screener-ml-service ./ml-service
+    docker-compose up -d
+    ```
 
 ---
 
-## 📈 Future Roadmap
-- [ ] Integration with LinkedIn API for one-click auditing.
-- [ ] Support for multi-language resumes (using BERT multilingual models).
-- [ ] Comparison View: Audit 5 candidates side-by-side.
+## Future Development
+Plans include integration with professional networking APIs for one-click auditing, support for multi-language resumes using multilingual BERT models, and a comparison view for auditing multiple candidates side-by-side.
 
-*Designed with ❤️ for fair and efficient hiring.*
+## License
+Distributed under the MIT License.
