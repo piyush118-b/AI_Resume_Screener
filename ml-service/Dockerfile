@@ -11,7 +11,9 @@ COPY requirements.txt .
 RUN apt-get update && apt-get install -y libomp-dev && \
     pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt && \
-    python -m spacy download en_core_web_sm
+    python -m spacy download en_core_web_sm && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    rm -rf /root/.cache/pip
 
 # Copy the rest of the application code
 COPY . .
