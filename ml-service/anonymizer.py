@@ -1,8 +1,6 @@
-import spacy
+from extractor import nlp
 import re
 
-# Load the same English Brain we downloaded before
-nlp = spacy.load("en_core_web_sm")
 
 # 🌟 These are gendered words we want to remove.
 # If the AI reads "he led a team", it might subconsciously prefer men. We remove this.
@@ -44,8 +42,8 @@ def anonymize_text(text: str) -> dict:
     for ent in sorted(doc.ents, key=lambda x: len(x.text), reverse=True):
         word_clean = ent.text.strip().lower()
         
-        # 🚨 THE BRAIN FIX: If the word is a known tech skill, skip it!
-        if word_clean in SKILLS_WHITELIST or any(skill in word_clean for skill in SKILLS_WHITELIST):
+        # 🚨 THE BRAIN FIX: If the word is a known tech skill OR the AI labeled it as a SKILL, skip it!
+        if ent.label_ == "SKILL" or word_clean in SKILLS_WHITELIST or any(skill in word_clean for skill in SKILLS_WHITELIST):
             continue
             
         # Only redact if it looks like a real entity (length > 2 for names/orgs)
