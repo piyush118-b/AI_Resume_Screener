@@ -35,3 +35,15 @@ We had to fundamentally rethink our scoring logic. We implemented a balanced heu
 
 ## The Result
 What started as a simple keyword matcher ended as a multi-stage microservice architecture. We overcame memory leaks, library bloat, and logic conflicts between our natural language modules. The Auditor is now a tool that doesn't just scan resumes—it provides a transparent, accountable audit of the hiring process itself. This journey from a basic script to a hardened cloud application with a handcrafted soul was as much a learning experience in product design as it was in machine learning.
+
+## The Horizon: From Screener to AI Co-Pilot
+While our system successfully solved the core issues of bias and semantic matching, we recognize that the recruitment landscape in 2026 demands true intelligence, not just statistical matching. The next chapter of our story involves shifting from a "smart keyword matcher" to an "AI that thinks like a senior recruiter."
+
+Our vision for the next evolution of the platform encompasses four major pillars:
+
+1. **LLM-Powered Intelligence Layer**: We are replacing our traditional spaCy and XGBoost stack with a local LLM extractor (e.g., Llama-3.1-8B or Mistral-Nemo via Ollama). This will enable us to extract complex structured data from chaotic resume formats seamlessly. To complement this, we'll introduce Retrieval-Augmented Generation (RAG) using a vector database (like Chroma or Qdrant) to match new candidates against historical successful hires. Finally, the LLM will auto-generate tailored interview questions and skill-gap reports.
+2. **Next-Gen Bias & Fairness Engine**: To supercharge our unique selling point, we will implement a Counterfactual Fairness Module that runs resumes under varying simulated demographics to calculate and flag specific biases (e.g., "Name halo added +18% score"). Integration with Fairlearn and AIF360 will allow us to generate compliance-ready "Fairness Certificates." We will also introduce a "Blind Shortlist" mode for truly unbiased vetting.
+3. **Killer UX & Workflow Features**: We will transform the platform into a collaborative environment. This includes batch upload capabilities with real-time websocket updates, a "Collaborative Audit Room" for teams to review candidate profiles simultaneously, and one-click API exports to major ATS platforms like Workday and Greenhouse. A mobile-first "Auditor Lite" app will let recruiters review on the go.
+4. **Infrastructure & Scalability**: To handle the massive compute required by LLMs and vector embeddings, we will migrate our Python brain to Serverless GPU Inference (e.g., AWS SageMaker Serverless, RunPod, or Modal). We'll introduce Redis and Celery for async job management, and upgrade our frontend to a modern framework (Next.js 15 + Tailwind). The entire orchestration will be containerized with Kubernetes to guarantee high availability and scale.
+
+These steps represent our commitment to building an equitable, incredibly smart, and deeply collaborative tool that will redefine the future of ethical hiring.
