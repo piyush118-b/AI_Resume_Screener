@@ -19,7 +19,8 @@
                 <i class="fa-solid fa-arrow-left"></i> Back to Workbench
             </a>
             <h1>The Audit <span style="font-style: italic;">Report</span></h1>
-            <p style="color: var(--text-dim);">Candidate Analysis Case ID: #[[${score.hashCode()}]]</p>
+            <p style="color: var(--text-dim);">Candidate: <strong style="color: var(--accent);"
+                    th:text="${score.candidate_name}">Unknown</strong> | Case ID: #[[${score.hashCode()}]]</p>
         </div>
 
         <!-- 🧪 THE BIAS ENGINE UI -->
@@ -60,6 +61,30 @@
             <div>
                 <div class="glass-card" style="padding: 2rem;">
                     <h3 style="margin-bottom: 1.5rem;">Extracted Dossier</h3>
+
+                    <!-- 🌟 NEW: AI-Extracted Experience Timeline -->
+                    <div style="margin-bottom: 2.5rem;">
+                        <h4
+                            style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); margin-bottom: 1rem;">
+                            <i class="fa-solid fa-briefcase"></i> Career History (AI Extracted)
+                        </h4>
+                        <div th:if="${not #lists.isEmpty(score.experience)}">
+                            <div th:each="exp : ${score.experience}"
+                                style="margin-bottom: 1.5rem; padding-left: 1rem; border-left: 2px solid var(--primary);">
+                                <strong th:text="${exp.role}" style="color: #fff; display: block;">Role</strong>
+                                <span th:text="${exp.company}"
+                                    style="font-style: italic; color: #d0c8b0;">Company</span>
+                                <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.2rem;"
+                                    th:text="${exp.years}">Duration</div>
+                                <ul
+                                    style="margin-top: 0.5rem; font-size: 0.85rem; color: #a3b18a; padding-left: 1.2rem;">
+                                    <li th:each="achieve : ${exp.achievements}" th:text="${achieve}">Achievement</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <p th:if="${#lists.isEmpty(score.experience)}"
+                            style="color: var(--text-dim); font-style: italic;">No work experience detected.</p>
+                    </div>
 
                     <!-- Education -->
                     <div style="margin-bottom: 2.5rem;">

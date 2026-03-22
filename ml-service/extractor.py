@@ -1,127 +1,97 @@
-import spacy
-import re
+import json
+import logging
+from typing import List, Optional
+from pydantic import BaseModel, Field
+import requests
 
-# We are loading a pre-trained language "brain" from spaCy. 
-# It understands English words, names, organizations, and grammar out of the box.
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    print("Warning: spaCy model 'en_core_web_sm' not found. Make sure to download it using: python -m spacy download en_core_web_sm")
-    nlp = None
+# ------------------------------------------------------------------
+# Define the Structured Data Models (Pydantic)
+# ------------------------------------------------------------------
+class Experience(BaseModel):
+    role: str = Field(description="The job title or role")
+    company: str = Field(description="The name of the company")
+    years: str = Field(description="Detailed duration, e.g., '2020 - 2023' or '3 years'")
+    achievements: List[str] = Field(description="List of key responsibilities or achievements")
 
-# 🌟 1. The Skill Dictionary
-KNOWN_SKILLS = [
-    "python", "java", "javascript", "typescript", "c++", "c#", "php", "ruby", "go", "rust", "kotlin", "swift",
-    "spring boot", "spring", "django", "flask", "fastapi", "express", "node", "laravel", "rails", "asp.net",
-    "react", "angular", "vue", "html", "css", "tailwind", "bootstrap", "jquery", "next.js", "redux",
-    "sql", "postgresql", "mysql", "mongodb", "redis", "oracle", "sqlite", "cassandra", "firebase",
-    "aws", "azure", "google cloud", "gcp", "docker", "kubernetes", "jenkins", "terraform", "ansible", "git", "github", "gitlab",
-    "machine learning", "deep learning", "artificial intelligence", "nlp", "data science", "tensorflow", "pytorch", 
-    "scikit-learn", "pandas", "numpy", "tableau", "power bi", "r", "opencv",
-    "jira", "confluence", "postman", "swagger", "graphql", "rest api", "microservices", "agile", "scrum", "linux"
-]
+class Education(BaseModel):
+    degree: str = Field(description="The degree obtained, e.g., 'B.Tech in Computer Science'")
+    institution: str = Field(description="The university or college name")
+    year_of_passing: str = Field(description="The graduation year")
 
-# Add a pattern matcher to the spacy brain!
-if nlp:
-    ruler = nlp.add_pipe("entity_ruler", before="ner")
-    patterns = [{"label": "SKILL", "pattern": skill} for skill in KNOWN_SKILLS]
-    ruler.add_patterns(patterns)
+class CandidateProfile(BaseModel):
+    name: str = Field(description="Full name of the candidate")
+    skills: List[str] = Field(description="List of technical skills and tools")
+    experience: List[Experience] = Field(description="List of work experiences")
+    education: List[Education] = Field(description="List of educational qualifications")
 
+def extract_resume_data(text: str) -> CandidateProfile:
+    """Hits the local Llama 3.1 model to extract strict JSON from chaotic text."""
+    schema_json = json.dumps(CandidateProfile.model_json_schema())
+    
+    prompt = f"""
+    You are an expert technical AI recruiter. You will be given raw text extracted from a parsed resume or job description.
+    Your task is to extract the candidate's name, skills, experience, and education and format it exactly according to the provided JSON schema. 
+    
+    Follow these rules:
+    1. Output ONLY valid JSON.
+    2. Do NOT output any markdown blocks (like ```json), just the raw JSON string.
+    3. Ensure the structure perfectly matches the schema.
+    4. If a field is missing from the resume, return an empty string or empty list for that field.
 
-def format_skill_name(skill: str) -> str:
-    """Makes sure skills like AWS, SQL, and PHP stay capitalized correctly."""
-    UPPERCASE_SKILLS = ["aws", "sql", "php", "gcp", "nlp", "api", "html", "css", "js", "r", "it", "ece", "cse"]
-    if skill.lower() in UPPERCASE_SKILLS:
-        return skill.upper()
-    return skill.title() # Capitalizes first letter (e.g., python -> Python)
+    JSON Schema:
+    {schema_json}
+    
+    Raw Document Text:
+    {text}
+    """
 
-def extract_skills(text: str) -> list[str]:
-    """Uses the new Entity Brain to find skills much faster and smarter."""
-    if not nlp:
-        return []
+    url = "http://localhost:11434/api/generate"
+    payload = {
+        "model": "llama3.1",
+        "prompt": prompt,
+        "format": "json",
+        "stream": False
+    }
+
+    try:
+        response = requests.post(url, json=payload, timeout=60) # High timeout for LLM inference
+        response.raise_for_status()
         
-    doc = nlp(text)
-    found_skills = set()
-    
-    # 🌟 We look for things the AI labeled as "SKILL"
-    for ent in doc.ents:
-        if ent.label_ == "SKILL":
-            found_skills.add(format_skill_name(ent.text))
-            
-    return list(found_skills)
+        result_text = response.json().get("response", "{}")
+        if result_text.startswith("```json"):
+            result_text = result_text.strip("```json").strip("```")
 
-def extract_education(text: str) -> list[str]:
-    """Tries to figure out what specific college degrees and branches the applicant has."""
-    text_lower = text.lower()
-    found_edu = set()
-    found_branches = set()
-    
-    # 1. Degree Mapping
-    EDU_MAP = {
-        "bachelor": "Bachelor's Degree",
-        "graduat": "Graduation", 
-        "master": "Master's Degree",
-        "phd": "PhD",
-        "b.tech": "B.Tech",
-        "m.tech": "M.Tech",
-        "b.s": "B.S.",
-        "m.s": "M.S.",
-        "b.sc": "B.Sc",
-        "m.sc": "M.Sc",
-        "mba": "MBA",
-        "b.e": "B.E.",
-        "m.e": "M.E.",
-        "diploma": "Diploma"
-    }
+        structured_data = json.loads(result_text)
+        return CandidateProfile(**structured_data)
 
-    # 2. Branch/Specialization Mapping
-    BRANCH_MAP = {
-        "computer science": "Computer Science",
-        "computer engineering": "Computer Engineering",
-        "information technology": "Information Technology",
-        "mechanical": "Mechanical",
-        "civil": "Civil",
-        "electrical": "Electrical",
-        "electronics": "Electronics",
-        "ece": "ECE",
-        "cse": "CSE",
-        "it": "IT"
-    }
-    
-    # Search for Degrees
-    for key, display_name in EDU_MAP.items():
-        if re.search(r'\b' + re.escape(key), text_lower):
-            found_edu.add(display_name)
-
-    # Search for Branches
-    for key, display_name in BRANCH_MAP.items():
-        if re.search(r'\b' + re.escape(key) + r'\b', text_lower):
-            found_branches.add(display_name)
-            
-    # Combine results for a better UI experience
-    if not found_edu and not found_branches:
-        return []
-    
-    # If we found both, return them together like "B.Tech (Computer Science)"
-    if found_edu and found_branches:
-        edu_str = ", ".join(found_edu)
-        branch_str = ", ".join(found_branches)
-        return [f"{edu_str} in {branch_str}"]
-    
-    return list(found_edu) if found_edu else list(found_branches)
+    except Exception as e:
+        logging.error(f"Failed to use LLM for extraction, falling back to empty. Error: {str(e)}")
+        # Fallback profile
+        return CandidateProfile(name="Unknown", skills=[], experience=[], education=[])
 
 def analyze_resume(text: str) -> dict:
     """
-    The orchestrator function. It takes raw text and spits out structured data.
-    This is the core of what AI/Data Extraction is!
+    The orchestrator function. Takes raw text, runs it through the LLM,
+    and spits out structured data matching the backend's expected API.
     """
-    # 🌟 Call our helper functions above
-    skills = extract_skills(text)
-    education = extract_education(text)
+    # 🌟 Call our new LLM brain
+    logging.info("Calling Llama 3.1 Extractor...")
+    profile = extract_resume_data(text)
     
+    # Format the education list into simple strings for backend backward compatibility
+    education_strings = [
+        f"{edu.degree} at {edu.institution} ({edu.year_of_passing})" 
+        for edu in profile.education
+    ]
+    
+    # Convert experiences to pure dicts for JSON serialization
+    experience_dicts = [exp.model_dump() for exp in profile.experience]
+
     # Package it into a neat Dictionary (which turns into JSON over the internet)
     return {
-        "skills": skills,
-        "education": education,
-        "skill_count": len(skills) # A cool bonus metric: How many skills do they have?
+        "name": profile.name,
+        "skills": profile.skills,
+        "education": education_strings,
+        "experience": experience_dicts, # 🌟 NEW HUGE ADDITION
+        "skill_count": len(profile.skills)
     }

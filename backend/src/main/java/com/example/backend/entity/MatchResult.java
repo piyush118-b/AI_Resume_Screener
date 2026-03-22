@@ -32,6 +32,12 @@ public class MatchResult {
     @Column(name = "extracted_skills", columnDefinition = "TEXT")
     private String extractedSkills; // JSON array of matched skills
 
+    @Column(name = "candidate_name")
+    private String candidateName; // 🌟 NEW LLM Extracted
+
+    @Column(name = "extracted_experience", columnDefinition = "TEXT")
+    private String extractedExperience; // 🌟 NEW LLM Extracted
+
     @Column(name = "matched_at")
     private LocalDateTime matchedAt = LocalDateTime.now();
 }

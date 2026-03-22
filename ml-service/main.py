@@ -120,6 +120,7 @@ def score_match(request: ScoreRequest):
         # Step 10: Bundle it all up!
         return {
             "status": "success",
+            "candidate_name": analysis_result.get("name", "Unknown"), # 🌟 NEW
             "similarity_score_percentage": float(standard_score),
             "unbiased_score_percentage": float(unbiased_score),
             "placement_probability": round(float(balanced_prob), 2),
@@ -127,7 +128,8 @@ def score_match(request: ScoreRequest):
             "redacted_items": anonymized_result["redacted_items"],
             "matched_skills": analysis_result["skills"],
             "missing_skills": missing_skills,
-            "education": analysis_result["education"]
+            "education": analysis_result["education"],
+            "experience": analysis_result.get("experience", [])       # 🌟 NEW
         }
     except Exception as e:
         return {"error": str(e), "message": "Failed to calculate score"}

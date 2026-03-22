@@ -88,6 +88,19 @@ public class ResumeOrchestratorService {
             if (scoreResponse.getMatched_skills() != null) {
                 match.setExtractedSkills(String.join(",", scoreResponse.getMatched_skills()));
             }
+            if (scoreResponse.getCandidate_name() != null) {
+                match.setCandidateName(scoreResponse.getCandidate_name()); // 🌟 NEW
+            }
+            if (scoreResponse.getExperience() != null && !scoreResponse.getExperience().isEmpty()) {
+                // Convert experience structure to a tiny json-like summary string for easy
+                // storage
+                String expSummary = scoreResponse.getExperience().stream()
+                        .map(e -> e.getRole() + " at " + e.getCompany() + " (" + e.getYears() + ")")
+                        .reduce((a, b) -> a + " | " + b)
+                        .orElse("");
+                match.setExtractedExperience(expSummary); // 🌟 NEW
+            }
+
             matchResultRepository.save(match);
 
             // 4. Return the final math package to the user!

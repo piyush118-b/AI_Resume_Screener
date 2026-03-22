@@ -1,5 +1,31 @@
-from extractor import nlp
+import spacy
 import re
+
+# We are loading a pre-trained language "brain" from spaCy. 
+# It understands English words, names, organizations, and grammar out of the box.
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    print("Warning: spaCy model 'en_core_web_sm' not found. Make sure to download it using: python -m spacy download en_core_web_sm")
+    nlp = None
+
+# The Skill Dictionary (Moved from extractor to strictly protect skills during anonymization)
+KNOWN_SKILLS = [
+    "python", "java", "javascript", "typescript", "c++", "c#", "php", "ruby", "go", "rust", "kotlin", "swift",
+    "spring boot", "spring", "django", "flask", "fastapi", "express", "node", "laravel", "rails", "asp.net",
+    "react", "angular", "vue", "html", "css", "tailwind", "bootstrap", "jquery", "next.js", "redux",
+    "sql", "postgresql", "mysql", "mongodb", "redis", "oracle", "sqlite", "cassandra", "firebase",
+    "aws", "azure", "google cloud", "gcp", "docker", "kubernetes", "jenkins", "terraform", "ansible", "git", "github", "gitlab",
+    "machine learning", "deep learning", "artificial intelligence", "nlp", "data science", "tensorflow", "pytorch", 
+    "scikit-learn", "pandas", "numpy", "tableau", "power bi", "r", "opencv",
+    "jira", "confluence", "postman", "swagger", "graphql", "rest api", "microservices", "agile", "scrum", "linux"
+]
+
+# Add a pattern matcher to the spacy brain!
+if nlp:
+    ruler = nlp.add_pipe("entity_ruler", before="ner")
+    patterns = [{"label": "SKILL", "pattern": skill} for skill in KNOWN_SKILLS]
+    ruler.add_patterns(patterns)
 
 
 # 🌟 These are gendered words we want to remove.
