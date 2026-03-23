@@ -1,8 +1,12 @@
 # AI Resume Screener: The Auditor
 
+![Project Status](https://img.shields.io/badge/status-active-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
 **Live Demo**: [http://16.171.145.227:8080/dashboard](http://16.171.145.227:8080/dashboard)
 
-The Auditor is a sophisticated intelligence layer designed for modern hiring. Instead of simple keyword matching, it provides a full-stack decision support system that uses Natural Language Processing and Machine Learning to audit candidates with a focus on fairness and predictive accuracy.
+
+The Auditor is an intelligence layer designed for modern hiring. Instead of simple keyword matching, it provides a full-stack decision support system that uses Natural Language Processing and Machine Learning to audit candidates with a focus on fairness and predictive accuracy.
 
 ## Core Capabilities
 
